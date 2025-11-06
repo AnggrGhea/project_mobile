@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/siswa.dart';
 
 class AuthService {
@@ -18,18 +19,56 @@ class AuthService {
         return null; // Login gagal
       }
 
-      return Siswa.fromJson(response);
+      final siswa = Siswa.fromJson(response);
+      await saveSession(siswa); // Simpan sesi
+      return siswa;
     } catch (e) {
       debugPrint('Login error: $e');
       return null;
     }
   }
 
-  // Optional: Simpan session atau token di SharedPreferences / Riverpod / GetX
   Future<void> saveSession(Siswa siswa) async {
-    // Contoh simpan di SharedPreferences (install package: shared_preferences)
-    // Atau bisa pake Riverpod/GetX state management
-    // Untuk sementara, kita cuma print
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('id_siswa', siswa.idSiswa);
+    await prefs.setString('nama', siswa.nama);
+    await prefs.setString('nis', siswa.nis);
+    await prefs.setString('username', siswa.username);
+    await prefs.setString(
+      'password',
+      siswa.password,
+    ); // ⚠️ Hati-hati, password harus dihash!
     debugPrint('User logged in: ${siswa.nama}');
+  }
+
+  Future<Siswa?> getSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    final idSiswa = prefs.getInt('id_siswa');
+    final nama = prefs.getString('nama');
+    final nis = prefs.getString('nis');
+    final username = prefs.getString('username');
+    final password = prefs.getString('password');
+
+    if (idSiswa == null ||
+        nama == null ||
+        nis == null ||
+        username == null ||
+        password == null) {
+      return null; // Sesi tidak tersedia
+    }
+
+    return Siswa(
+      idSiswa: idSiswa,
+      nama: nama,
+      nis: nis,
+      username: username,
+      password: password,
+    );
+  }
+
+  Future<void> clearSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    debugPrint('Session cleared');
   }
 }

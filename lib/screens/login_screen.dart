@@ -76,14 +76,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   height: 80,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Colors.blue.shade600, Colors.blue.shade800],
+                      colors: [
+                        const Color.fromARGB(255, 30, 229, 106),
+                        const Color.fromARGB(255, 21, 192, 126),
+                      ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.blue.shade200,
+                        color: const Color.fromARGB(255, 144, 249, 170),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -148,7 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _handleLogin,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue.shade700,
+                      backgroundColor: const Color.fromARGB(255, 25, 210, 102),
                       foregroundColor: Colors.white,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
@@ -223,7 +226,10 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(color: Colors.blue.shade700, width: 2),
+            borderSide: BorderSide(
+              color: const Color.fromARGB(255, 25, 210, 84),
+              width: 2,
+            ),
           ),
           filled: true,
           fillColor: Colors.white,

@@ -1,10 +1,10 @@
+// lib/models/siswa.dart
 class Siswa {
   final int idSiswa;
   final String nama;
   final String nis;
   final String username;
-  final String
-  password; // ⚠️ Hati-hati, ini hanya untuk demo. Di production, password harus dihash!
+  final String password;
 
   Siswa({
     required this.idSiswa,
