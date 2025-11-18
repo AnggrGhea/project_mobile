@@ -1,17 +1,16 @@
-// lib/services/kelas_service.dart
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/kelas.dart';
 import '../models/mapel.dart';
 import '../models/activity.dart';
 import '../models/progress_siswa.dart';
+import 'dart:typed_data';
 
 class KelasService {
   final supabase = Supabase.instance.client;
 
   Future<List<Kelas>> getKelasBySiswaId(int idSiswa) async {
     try {
-      // Ambil id_kelas dari siswa
       final siswaResponse = await supabase
           .from('siswa')
           .select('id_kelas')
@@ -25,7 +24,6 @@ class KelasService {
 
       final idKelas = siswaResponse['id_kelas'] as int;
 
-      // Ambil data kelas berdasarkan id_kelas
       final response = await supabase
           .from('kelas')
           .select('*')
@@ -38,13 +36,10 @@ class KelasService {
     }
   }
 
-  // 🔥 Method Baru: Ambil Mapel Berdasarkan id_kelas
   Future<List<Mapel>> getMapelByKelasId(int idKelas) async {
     try {
       final response = await supabase
-          .from(
-            'mata_pelajaran',
-          ) // Ganti dengan nama tabel yang benar di Supabase kamu
+          .from('mata_pelajaran')
           .select('*')
           .eq('id_kelas', idKelas);
 
@@ -55,7 +50,6 @@ class KelasService {
     }
   }
 
-  // 🔥 Method Baru: Ambil Activity Berdasarkan id_mapel
   Future<List<Activity>> getActivityByMapelId(int idMapel) async {
     try {
       debugPrint('Fetching activities for mapel $idMapel');
@@ -74,14 +68,13 @@ class KelasService {
       debugPrint('Supabase Response: $response');
       debugPrint('Response from Supabase: $response');
 
-      debugPrint('Activity Response: $response'); // Debug print
+      debugPrint('Activity Response: $response');
 
       final activities = response
           .map((json) => Activity.fromJson(json))
           .toList();
-      debugPrint('Parsed Activities: ${activities.length}'); // Debug count
+      debugPrint('Parsed Activities: ${activities.length}');
 
-      // Debug setiap activity
       for (var activity in activities) {
         debugPrint(
           'Activity ${activity.idActivity}: type=${activity.type}, hasModul=${activity.modul != null}',
@@ -95,17 +88,14 @@ class KelasService {
     }
   }
 
-  // 🔥 Method Baru: Ambil Progress Siswa Berdasarkan id_siswa dan id_activity
   Future<List<ProgressSiswa>> getProgressBySiswaAndActivity(
     int idSiswa,
     List<int> activityIds,
   ) async {
     try {
-      // Jika tidak ada activityIds, kembalikan list kosong lebih awal
       if (activityIds.isEmpty) return [];
 
-      // Gunakan filter in_ pada kolom id_activity untuk mengambil progress yang relevan
-      final orFilter = activityIds.map((id) => 'id_activity.eq.\$id').join(',');
+      final orFilter = activityIds.map((id) => 'id_activity.eq.$id').join(',');
       final response = await supabase
           .from('progress_siswa')
           .select('*')
@@ -119,7 +109,6 @@ class KelasService {
     }
   }
 
-  // Optional: Ambil nama jurusan berdasarkan id_jurusan
   Future<String> getNamaJurusan(int idJurusan) async {
     try {
       final response = await supabase
@@ -139,15 +128,12 @@ class KelasService {
     }
   }
 
-  /// Get public URL for a file stored in Supabase Storage bucket.
-  /// Returns null if not available.
   Future<String?> getPublicFileUrl({
     required String bucket,
     required String path,
   }) async {
     try {
       final res = supabase.storage.from(bucket).getPublicUrl(path);
-      // Try to access common keys dynamically (some SDKs return Map-like object)
       try {
         final dynamicMap = res as dynamic;
         final candidate =
@@ -155,15 +141,87 @@ class KelasService {
             dynamicMap['publicUrl'] ??
             dynamicMap['public_url'];
         if (candidate != null) return candidate.toString();
-      } catch (_) {
-        // ignore
-      }
+      } catch (_) {}
 
-      // Fallback to string representation
       return res.toString();
     } catch (e) {
       debugPrint('Error getting public url: $e');
       return null;
+    }
+  }
+
+  Future<String?> getFileUrlOrSigned({
+    required String bucket,
+    required String path,
+    int expiresInSeconds = 60,
+  }) async {
+    try {
+      final public = await getPublicFileUrl(bucket: bucket, path: path);
+      if (public != null && public.isNotEmpty) {
+        debugPrint('getFileUrlOrSigned: got public url for $bucket/$path');
+        return public;
+      }
+
+      try {
+        debugPrint(
+          'getFileUrlOrSigned: attempting signed url for $bucket/$path',
+        );
+        final signed = await supabase.storage
+            .from(bucket)
+            .createSignedUrl(path, expiresInSeconds);
+        try {
+          final dynamicMap = signed as dynamic;
+          final candidate =
+              dynamicMap['signedURL'] ??
+              dynamicMap['signedUrl'] ??
+              dynamicMap['signed_url'];
+          if (candidate != null) return candidate.toString();
+        } catch (_) {}
+        return signed.toString();
+      } catch (e) {
+        debugPrint('createSignedUrl failed: $e');
+        return null;
+      }
+    } catch (e) {
+      debugPrint('getFileUrlOrSigned error: $e');
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>> uploadFileBytes({
+    required String bucket,
+    required String path,
+    required Uint8List bytes,
+    required String filename,
+  }) async {
+    try {
+      await supabase.storage.from(bucket).uploadBinary(path, bytes);
+      debugPrint('uploadBinary succeeded for $bucket/$path');
+      return {'ok': true};
+    } catch (e, st) {
+      final msg = 'Upload error: $e';
+      debugPrint(msg);
+      debugPrint(st.toString());
+      return {'ok': false, 'message': msg};
+    }
+  }
+
+  Future<Map<String, dynamic>> submitTugasRecord({
+    required int idActivity,
+    required String filePath,
+    required int idSiswa,
+  }) async {
+    try {
+      await Supabase.instance.client.from('pengumpulan_tugas').insert({
+        'id_tugas': idActivity,
+        'file_url': filePath,
+        'id_siswa': idSiswa,
+      });
+
+      return {'ok': true};
+    } catch (e) {
+      debugPrint('Error submitting task record: $e');
+      return {'ok': false, 'message': e.toString()};
     }
   }
 }

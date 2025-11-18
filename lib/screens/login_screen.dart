@@ -1,6 +1,8 @@
+// lib/screens/login_screen.dart
 import 'package:flutter/material.dart';
 import 'package:project_mobile/services/auth_service.dart';
 import 'package:project_mobile/screens/dashboard_screen.dart';
+import 'package:project_mobile/models/siswa.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -48,6 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showSnackBar(String message, {bool isError = false}) {
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -70,7 +73,6 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Logo/Icon Section
                 Container(
                   width: 80,
                   height: 80,
@@ -99,8 +101,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 32),
-
-                // Title
                 Text(
                   'Selamat Datang',
                   style: TextStyle(
@@ -115,16 +115,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(fontSize: 15, color: Colors.grey.shade600),
                 ),
                 const SizedBox(height: 48),
-
-                // Username Field
                 _buildTextField(
                   controller: _usernameController,
                   hintText: 'Username',
                   icon: Icons.person_outline_rounded,
                 ),
                 const SizedBox(height: 16),
-
-                // Password Field
                 _buildTextField(
                   controller: _passwordController,
                   hintText: 'Password',
@@ -143,8 +139,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 32),
-
-                // Login Button
                 SizedBox(
                   width: double.infinity,
                   height: 56,

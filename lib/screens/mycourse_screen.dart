@@ -1,7 +1,6 @@
 // lib/screens/mycourse_screen.dart
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // ✅ Import SharedPreferences
-import '../models/siswa.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // ✅ Import SharedPreferencesS
 import '../services/kelas_service.dart';
 import '../models/mapel.dart';
 import '../screens/mapel_detail_screen.dart'; // ✅ Import MapelDetailScreen
