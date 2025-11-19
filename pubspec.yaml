@@ -41,6 +41,7 @@ dependencies:
   dio: ^5.2.2
   path_provider: ^2.0.14
   open_filex: ^4.1.1
+  file_picker: ^5.2.2
 
 dev_dependencies:
   flutter_test:

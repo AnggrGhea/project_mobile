@@ -4,14 +4,16 @@ class Siswa {
   final String nama;
   final String nis;
   final String username;
-  final String password;
+  final int idKelas;
+  final String? userId;
 
   Siswa({
     required this.idSiswa,
     required this.nama,
     required this.nis,
     required this.username,
-    required this.password,
+    required this.idKelas,
+    this.userId,
   });
 
   factory Siswa.fromJson(Map<String, dynamic> json) {
@@ -20,7 +22,8 @@ class Siswa {
       nama: json['nama'] as String,
       nis: json['nis'] as String,
       username: json['username'] as String,
-      password: json['password'] as String,
+      idKelas: json['id_kelas'] as int,
+      userId: json['user_id'] as String?,
     );
   }
 
@@ -30,7 +33,8 @@ class Siswa {
       'nama': nama,
       'nis': nis,
       'username': username,
-      'password': password,
+      'id_kelas': idKelas,
+      'user_id': userId,
     };
   }
 }

@@ -1,3 +1,4 @@
+// lib/services/auth_service.dart
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,7 +13,10 @@ class AuthService {
           .from('siswa')
           .select('*')
           .eq('username', username)
-          .eq('password', password)
+          .eq(
+            'password',
+            password,
+          ) // <-- Pastikan kolom ini ada di table `siswa`
           .maybeSingle();
 
       if (response == null) {
@@ -34,10 +38,7 @@ class AuthService {
     await prefs.setString('nama', siswa.nama);
     await prefs.setString('nis', siswa.nis);
     await prefs.setString('username', siswa.username);
-    await prefs.setString(
-      'password',
-      siswa.password,
-    ); // ⚠️ Hati-hati, password harus dihash!
+    await prefs.setInt('id_kelas', siswa.idKelas);
     debugPrint('User logged in: ${siswa.nama}');
   }
 
@@ -47,13 +48,13 @@ class AuthService {
     final nama = prefs.getString('nama');
     final nis = prefs.getString('nis');
     final username = prefs.getString('username');
-    final password = prefs.getString('password');
+    final idKelas = prefs.getInt('id_kelas');
 
     if (idSiswa == null ||
         nama == null ||
         nis == null ||
         username == null ||
-        password == null) {
+        idKelas == null) {
       return null; // Sesi tidak tersedia
     }
 
@@ -62,7 +63,7 @@ class AuthService {
       nama: nama,
       nis: nis,
       username: username,
-      password: password,
+      idKelas: idKelas,
     );
   }
 
@@ -70,5 +71,29 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
     debugPrint('Session cleared');
+  }
+
+  Future<Siswa?> getSiswaById(int idSiswa) async {
+    try {
+      final response = await supabase
+          .from('siswa')
+          .select('*')
+          .eq('id_siswa', idSiswa)
+          .maybeSingle();
+
+      if (response == null) {
+        return null;
+      }
+
+      return Siswa.fromJson(response);
+    } catch (e) {
+      debugPrint('Error fetching siswa by ID: $e');
+      return null;
+    }
+  }
+
+  // Tambahkan method logout() untuk dipanggil di dashboard_screen
+  Future<void> logout() async {
+    await clearSession();
   }
 }

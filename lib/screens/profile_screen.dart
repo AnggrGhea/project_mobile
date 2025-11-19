@@ -14,6 +14,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final AuthService _authService = AuthService();
   Siswa? _siswa;
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -22,20 +23,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadProfile() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
+
+    final idSiswa = prefs.getInt('id_siswa');
+    final nama = prefs.getString('nama');
+    final nis = prefs.getString('nis');
+    final username = prefs.getString('username');
+    final idKelas = prefs.getInt('id_kelas');
+
+    if (idSiswa == null) {
+      setState(() => _isLoading = false);
+      return;
+    }
+
     setState(() {
       _siswa = Siswa(
-        idSiswa: prefs.getInt('idSiswa') ?? 0,
-        nama: prefs.getString('nama') ?? 'Siswa Tanpa Nama',
-        nis: prefs.getString('nis') ?? 'NIS Tidak Diketahui',
-        username: prefs.getString('username') ?? 'username_tidak_ada',
-        password: prefs.getString('password') ?? '',
+        idSiswa: idSiswa,
+        nama: nama ?? "Tidak ada nama",
+        nis: nis ?? "Tidak ada NIS",
+        username: username ?? "Tidak ada username",
+        idKelas: idKelas ?? 0,
       );
+      _isLoading = false;
     });
   }
 
   Future<void> _handleLogout(BuildContext context) async {
     await _authService.clearSession();
+
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -44,8 +59,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
     if (_siswa == null) {
-      return const Center(child: CircularProgressIndicator());
+      return Scaffold(
+        appBar: AppBar(title: const Text("Profil")),
+        body: const Center(child: Text("Data profil tidak ditemukan")),
+      );
     }
 
     return Scaffold(
@@ -65,7 +87,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Header Background + Avatar
+              // Header Profile
               Container(
                 height: 200,
                 decoration: BoxDecoration(
@@ -99,7 +121,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                       Text(
-                        'Username: ${_siswa!.username}',
+                        "Username: ${_siswa!.username}",
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 14,
@@ -126,17 +148,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         _infoTile(
                           Icons.badge,
-                          'ID Siswa',
+                          "ID Siswa",
                           _siswa!.idSiswa.toString(),
                         ),
                         const Divider(),
-                        _infoTile(Icons.person, 'Nama', _siswa!.nama),
+                        _infoTile(Icons.person, "Nama", _siswa!.nama),
                         const Divider(),
-                        _infoTile(Icons.numbers, 'NIS', _siswa!.nis),
+                        _infoTile(Icons.numbers, "NIS", _siswa!.nis),
                         const Divider(),
                         _infoTile(
-                          Icons.account_circle_outlined,
-                          'Username',
+                          Icons.account_circle,
+                          "Username",
                           _siswa!.username,
                         ),
                       ],
@@ -147,7 +169,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               const SizedBox(height: 24),
 
-              // Tombol Logout
+              // Logout Button
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 60,
@@ -169,6 +191,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
               ),
+
               const SizedBox(height: 20),
             ],
           ),
